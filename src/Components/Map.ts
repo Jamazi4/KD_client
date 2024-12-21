@@ -1,65 +1,121 @@
-import { Point } from "../main";
+import { Point } from "../utils/Point";
+import { Grid } from "./Grid";
 
-interface MapData {
-  tiles: number[][];
+export interface MapData {
+  tiles: Point[][];
 }
 
-interface Tile {}
-
 export class Map {
-  private image = new Image();
+  // rendering
+  private mapImage = new Image();
+  private markerImage = new Image();
   private mapDim: number;
-  private sourceDim: Point = { x: 64, y: 64 };
   private origin: Point;
-  private mapData: MapData = { tiles: [[0]] };
-  private grid: number[][] = [[0]];
+  private mapData: MapData = { tiles: [[new Point(0, 0)]] };
+
+  // tile
+  public tileGrid: Grid;
+
+  // input handling
+  private mouseCoords: Point;
 
   constructor(mapDim: number, origin: Point) {
     this.origin = origin;
     this.mapDim = mapDim;
-    this.image.src = "/map_reduced.png";
+    this.mapImage.src = "/map_reduced.png";
+    this.markerImage.src = "/function_map_tiles.png";
+    this.tileGrid = new Grid(this.mapDim, this.origin, this.mapData);
+
+    this.mouseCoords = new Point(-1, -1);
   }
 
+  // load mapImage and fetch data from server
   async init() {
-    this.image.onload = () => {
-      this.createGrid;
-    };
     const response = await fetch(
       `http://127.0.0.1:8000/generateMap/${this.mapDim}`
     );
     const data: MapData = await response.json();
+
     this.mapData = data;
+
     this.createGrid();
-    console.log(this.mapData);
   }
 
+  // New grid with
   createGrid() {
-    this.grid = Array.from({ length: this.mapDim }, () => {
-      return Array.from({ length: this.mapDim }, () => {
-        return 0;
-      });
-    });
-    console.log("create-grid", this.grid);
-    for (let i = 0; i < this.mapDim; i++) {
-      for (let j = 0; j < this.mapDim; j++) {}
+    this.tileGrid = new Grid(this.mapDim, this.origin, this.mapData);
+    this.tileGrid.init();
+  }
+
+  // draw mapImage on canvas relative to origin
+  render(ctx: CanvasRenderingContext2D) {
+    // extract drawing data from grid where it's calculated
+    const tiles = this.tileGrid.getTiles();
+
+    // iterate over flattened tile array and draw each tile
+    for (let tile in tiles) {
+      const curTile = tiles[tile];
+      ctx.drawImage(
+        this.mapImage,
+        curTile.sourcePos.x,
+        curTile.sourcePos.y,
+        16,
+        16,
+        curTile.destPos.x,
+        curTile.destPos.y,
+        64,
+        64
+      );
+      // draw selection marker
+      if (curTile.coords.equals(this.mouseCoords)) {
+        ctx.drawImage(
+          this.markerImage,
+          0,
+          48,
+          16,
+          16,
+          curTile.destPos.x,
+          curTile.destPos.y,
+          64,
+          64
+        );
+      }
+
+      ctx.font = "12px arial";
+    }
+    // Debuggin coords
+    for (let tile in tiles) {
+      ctx.fillText(
+        `${tiles[tile].coords.x} x ${tiles[tile].coords.y}`,
+        tiles[tile].destPos.x + 32 - 10,
+        tiles[tile].destPos.y + 32
+      );
     }
   }
 
-  render(ctx: CanvasRenderingContext2D) {
-    ctx.drawImage(
-      this.image,
-      0,
-      0,
-      16,
-      16,
-      this.origin.x,
-      this.origin.y,
-      this.sourceDim.x,
-      this.sourceDim.y
-    );
-  }
-
+  // called on window.onresize
   updateOrigin(origin: Point) {
     this.origin = origin;
+    this.tileGrid.updateOrigin(origin);
   }
+
+  listenMouse(mousePos: Point) {
+    // convert view coords to grid coords
+    const curX = Math.floor(
+      (this.origin.x + (this.mapDim / 2) * 64 - mousePos.x) / 64
+    );
+
+    const curY = Math.floor(
+      (this.origin.y + (this.mapDim / 2) * 64 - mousePos.y) / 64
+    );
+
+    // if pointing inside map, update mousecoords
+    if (curY <= this.mapDim - 1 && curX <= this.mapDim - 1) {
+      this.mouseCoords = new Point(curX, curY);
+    } else {
+      // by setting -1, -1 point - deselect any tile
+      this.mouseCoords = new Point(-1, -1);
+    }
+  }
+  // console.log(this.mouseCoords);
 }
