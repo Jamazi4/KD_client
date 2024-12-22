@@ -68,7 +68,7 @@ export class Grid {
   }
 
   // returning flattened tiles to avoid nested loops
-  getTiles() {
+  getTiles(): Tile[] {
     return this.tiles.flat();
   }
 
@@ -77,5 +77,14 @@ export class Grid {
     this.populateGrid(origin);
   }
 
-  getSelectedTile() {}
+  getTile(coords: Point): Tile {
+    for (let row of this.tiles) {
+      for (let curTile of row) {
+        if (curTile.coords.equals(coords)) {
+          return curTile;
+        }
+      }
+    }
+    throw new Error("Tile not found");
+  }
 }

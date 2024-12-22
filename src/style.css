@@ -2,4 +2,15 @@ body {
   margin: 0;
   background-color: #8abe36;
   overflow: hidden;
+  justify-content: center;
+  text-align: center;
+}
+
+.hidden {
+  display: none;
+}
+
+.join-button {
+  position: relative;
+  bottom: 50px;
 }

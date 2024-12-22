@@ -1,5 +1,5 @@
 import { Point } from "../utils/Point";
-import { Grid } from "./Grid";
+import { Grid, Tile } from "./Grid";
 
 export interface MapData {
   tiles: Point[][];
@@ -12,8 +12,9 @@ export class Map {
   private mapDim: number;
   private origin: Point;
   private mapData: MapData = { tiles: [[new Point(0, 0)]] };
+  private server_url = import.meta.env.VITE_API_URL;
 
-  // tile
+  // grid
   public tileGrid: Grid;
 
   // input handling
@@ -22,8 +23,8 @@ export class Map {
   constructor(mapDim: number, origin: Point) {
     this.origin = origin;
     this.mapDim = mapDim;
-    this.mapImage.src = "/map_reduced.png";
-    this.markerImage.src = "/function_map_tiles.png";
+    this.mapImage.src = "sprites/map/map_reduced.png";
+    this.markerImage.src = "sprites/map/function_map_tiles.png";
     this.tileGrid = new Grid(this.mapDim, this.origin, this.mapData);
 
     this.mouseCoords = new Point(-1, -1);
@@ -31,18 +32,21 @@ export class Map {
 
   // load mapImage and fetch data from server
   async init() {
-    const response = await fetch(
-      `http://127.0.0.1:8000/generateMap/${this.mapDim}`
-    );
-    const data: MapData = await response.json();
+    try {
+      const response = await fetch(
+        `${this.server_url}/generateMap/${this.mapDim}`
+      );
+      const data: MapData = await response.json();
+      this.mapData = data;
 
-    this.mapData = data;
-
-    this.createGrid();
+      this.createGrid();
+    } catch (error) {
+      console.log("Map init failed", error);
+    }
   }
 
   // New grid with
-  createGrid() {
+  async createGrid() {
     this.tileGrid = new Grid(this.mapDim, this.origin, this.mapData);
     this.tileGrid.init();
   }
@@ -53,8 +57,7 @@ export class Map {
     const tiles = this.tileGrid.getTiles();
 
     // iterate over flattened tile array and draw each tile
-    for (let tile in tiles) {
-      const curTile = tiles[tile];
+    for (let curTile of tiles) {
       ctx.drawImage(
         this.mapImage,
         curTile.sourcePos.x,
@@ -71,7 +74,7 @@ export class Map {
         ctx.drawImage(
           this.markerImage,
           0,
-          48,
+          48, // sprite coordinates for highlight marker
           16,
           16,
           curTile.destPos.x,
@@ -84,13 +87,13 @@ export class Map {
       ctx.font = "12px arial";
     }
     // Debuggin coords
-    for (let tile in tiles) {
-      ctx.fillText(
-        `${tiles[tile].coords.x} x ${tiles[tile].coords.y}`,
-        tiles[tile].destPos.x + 32 - 10,
-        tiles[tile].destPos.y + 32
-      );
-    }
+    // for (let tile in tiles) {
+    //   ctx.fillText(
+    //     `${tiles[tile].coords.x} x ${tiles[tile].coords.y}`,
+    //     tiles[tile].destPos.x + 32 - 10,
+    //     tiles[tile].destPos.y + 32
+    //   );
+    // }
   }
 
   // called on window.onresize
@@ -99,7 +102,7 @@ export class Map {
     this.tileGrid.updateOrigin(origin);
   }
 
-  listenMouse(mousePos: Point) {
+  listenMouse(mousePos: Point): Point {
     // convert view coords to grid coords
     const curX = Math.floor(
       (this.origin.x + (this.mapDim / 2) * 64 - mousePos.x) / 64
@@ -110,12 +113,19 @@ export class Map {
     );
 
     // if pointing inside map, update mousecoords
-    if (curY <= this.mapDim - 1 && curX <= this.mapDim - 1) {
+    if (
+      curY <= this.mapDim - 1 &&
+      curX <= this.mapDim - 1 &&
+      curY >= 0 &&
+      curX >= 0
+    ) {
       this.mouseCoords = new Point(curX, curY);
     } else {
       // by setting -1, -1 point - deselect any tile
       this.mouseCoords = new Point(-1, -1);
     }
+    return this.mouseCoords;
   }
+
   // console.log(this.mouseCoords);
 }

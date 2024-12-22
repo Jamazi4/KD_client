@@ -7,7 +7,21 @@
     <title>KD2</title>
   </head>
   <body>
-    <canvas id="canvas"></canvas>
+    <canvas id="canvas" class=""></canvas>
+
+    <div id="lobby" class="hidden">
+      <div id="rooms-div">
+        <ul id="rooms-list">
+          <div class="room-field">
+            <h1 class="room-name">Room 1</h1>
+            <button class="room-join">Join</button>
+          </div>
+        </ul>
+      </div>
+      <button id="create-room-btn">Create</button>
+    </div>
+
+    <button class="join-button" id="join-button">JOIN</button>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
