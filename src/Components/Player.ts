@@ -5,6 +5,7 @@ interface PlayerData {
   clientId: string;
   rotation: number;
   position: Point;
+  distance: number;
 }
 
 export class Player {
@@ -13,6 +14,7 @@ export class Player {
   private name: string;
   private level = 0;
   private position: Point;
+  private distance: number = 2; // only for legal tiles dev
 
   // rendering / animation
   private image = new Image();
@@ -77,11 +79,16 @@ export class Player {
       clientId: this.clientId,
       rotation: this.rotation,
       position: this.position,
+      distance: this.distance,
     };
   }
 
   // unused currently
   setPlayerData(data: PlayerData) {
     this.rotation = data.rotation;
+  }
+
+  move(position: Point) {
+    this.position = position;
   }
 }

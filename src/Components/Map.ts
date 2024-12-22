@@ -125,7 +125,7 @@ export class Map {
     return this.mouseCoords;
   }
 
-  markTiles(player: Player, ctx: CanvasRenderingContext2D) {
+  private markAttackTile(player: Player, ctx: CanvasRenderingContext2D) {
     const { position, rotation } = player.getPlayerData();
     const playerTile = this.tileGrid.getTile(position);
     let markPos;
@@ -163,7 +163,7 @@ export class Map {
       ctx.drawImage(
         this.markerImage,
         0,
-        64, // sprite coordinates for highlight marker
+        0, // sprite coordinates for highlight marker
         16,
         16,
         tileToMark.destPos.x,
@@ -172,5 +172,11 @@ export class Map {
         64
       );
     }
+  }
+
+  private markLegalTiles(player: Player, ctx: CanvasRenderingContext2D) {}
+
+  markTiles(player: Player, ctx: CanvasRenderingContext2D) {
+    this.markAttackTile(player, ctx);
   }
 }

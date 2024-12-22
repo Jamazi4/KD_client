@@ -26,6 +26,7 @@ export class ConnectionManager {
   private api_url = import.meta.env.VITE_API_URL;
   private playerName = "zimnoch"; // temporary player name
 
+  private updateCounter = 0;
   listen() {
     this.ws.onmessage = (event: MessageEvent) => {
       try {
@@ -36,6 +37,11 @@ export class ConnectionManager {
 
         if (message.type === "game-tick") {
           const server_players: ServerPlayers = message.data;
+
+          // setup counter for delaying this player updates
+          this.updateCounter >= 200
+            ? (this.updateCounter = 0)
+            : this.updateCounter++;
 
           // ADD PLAYERS
           if (
@@ -99,9 +105,22 @@ export class ConnectionManager {
   }
 
   private updateClientPlayers(server_players: ServerPlayers) {
+    // console.log("EACH PLAYER");
     for (let client_id in this.client_players) {
+      // omit current player from loop
+      if (client_id === this.this_client_id) continue;
       this.client_players[client_id].rotation =
         server_players[client_id].rotation;
+      this.client_players[client_id].move(server_players[client_id].position);
+    }
+
+    // Update this player only every x updates
+    if (this.updateCounter == 200) {
+      // console.log(this.updateCounter);
+      // console.log("THIS PLAYER");
+      this.client_players[this.this_client_id]?.move(
+        server_players[this.this_client_id].position
+      );
     }
   }
 
@@ -116,7 +135,7 @@ export class ConnectionManager {
           })
         );
       }
-    }, 15);
+    }, 50);
   }
 
   async joinGame() {
