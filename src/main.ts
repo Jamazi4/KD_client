@@ -22,14 +22,49 @@ ws.onmessage = (event: MessageEvent) => {
       console.log(message.data);
       clientId = message.data;
     }
+
+    if (message.type === "game-tick") {
+      // update client_players if another player appears
+      // and it doesnt appear in client client_players
+      const server_players = message.data;
+
+      // check if we have all players on client
+      if (
+        Object.keys(server_players).length !==
+        Object.keys(client_players).length
+      ) {
+        // If there are more players on server, check which
+        for (let server_id in server_players) {
+          if (!client_players.hasOwnProperty(server_id)) {
+            console.log("new player detected", server_players[clientId]);
+
+            // Create new instance of this player on client
+            client_players[server_id] = new Player(
+              server_id,
+              "test",
+              server_players[server_id][0],
+              server_players[server_id][1]
+            );
+            console.log(
+              "current client players: ",
+              Object.keys(client_players).length
+            );
+          }
+        }
+      }
+
+      // console.log(message.data);
+      // console.log(Object.keys(message.data).length);
+    }
   } catch (error) {
     console.log("Websocket error", error);
   }
 };
 
 // --------------------------------- JOIN/API ----------------------------------
+// consider to handle that also on ws only instead through API
 const api_url = import.meta.env.VITE_API_URL;
-const players: Player[] = []; // temporary player array
+const client_players: { [client_id: string]: Player } = {}; // temporary player array
 const playerName = "zimnoch"; // temporary player name
 
 // join button
@@ -38,16 +73,32 @@ joinBtn?.addEventListener("click", async (event) => {
   // prevent canvas clicking
   event.stopPropagation();
 
-  // recieve generated player position
-  const response = await fetch(
-    `${api_url}/create_player/${playerName}?client_id=${clientId}`
-  );
-  const data = await response.json();
+  try {
+    // recieve generated player position
+    const response = await fetch(
+      `${api_url}/create_player/${playerName}?client_id=${clientId}`
+    );
+    const data = await response.json();
 
-  // create new point from recieved position and create player
-  const playerPos = new Point(data.player.position.x, data.player.position.y);
-  const curPlayer = new Player(clientId, playerName, playerPos);
-  players.push(curPlayer);
+    // Check if got player back
+    if (data.error) {
+      throw Error("Player already exists");
+    }
+    // create new point from recieved position and create player
+    const playerPos = new Point(data.player.position.x, data.player.position.y);
+    const curPlayer = new Player(
+      clientId,
+      playerName,
+      playerPos,
+      data.player.color
+    );
+    client_players[clientId] = curPlayer;
+
+    // hide button
+    joinBtn.classList.toggle("hidden");
+  } catch (error) {
+    console.log("Coudln't create player", error);
+  }
 });
 
 // --------------------------------- Lobby -------------------------------------
@@ -106,9 +157,9 @@ function mainLoop() {
   // Render map
   map.render(ctx);
 
-  // Render players
-  for (let player of players) {
-    player.render(ctx, map.tileGrid);
+  // Render client_players
+  for (let player_client_id in client_players) {
+    client_players[player_client_id].render(ctx, map.tileGrid);
   }
 }
 

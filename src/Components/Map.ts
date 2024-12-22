@@ -87,13 +87,6 @@ export class Map {
       ctx.font = "12px arial";
     }
     // Debuggin coords
-    // for (let tile in tiles) {
-    //   ctx.fillText(
-    //     `${tiles[tile].coords.x} x ${tiles[tile].coords.y}`,
-    //     tiles[tile].destPos.x + 32 - 10,
-    //     tiles[tile].destPos.y + 32
-    //   );
-    // }
   }
 
   // called on window.onresize
