@@ -40,7 +40,7 @@ export class Grid {
   }
 
   // populate grid with source and destination positions
-  populateGrid(origin: Point = this.origin) {
+  private populateGrid(origin: Point = this.origin) {
     // iterate over each tile
     for (let i = 0; i < this.mapDim; i++) {
       for (let j = 0; j < this.mapDim; j++) {

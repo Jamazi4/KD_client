@@ -47,7 +47,7 @@ export class Map {
   }
 
   // New grid with
-  async createGrid() {
+  createGrid() {
     this.tileGrid = new Grid(this.mapDim, this.origin, this.mapData);
     this.tileGrid.init();
   }
@@ -124,5 +124,5 @@ export class Map {
     return this.mouseCoords;
   }
 
-  // console.log(this.mouseCoords);
+  markTiles() {}
 }

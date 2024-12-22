@@ -61,13 +61,13 @@ export class Player {
     const dx = selectedTile.coords.x - renderTile.coords.x;
     const dy = selectedTile.coords.y - renderTile.coords.y;
 
-    if (dx > 0 && dy == 0) this.rotation = 2; // left
-    if (dx < 0 && dy == 0) this.rotation = 6; // right
-    if (dx == 0 && dy > 0) this.rotation = 4; // up
     if (dx == 0 && dy < 0) this.rotation = 0; // down
-    if (dx > 0 && dy > 0) this.rotation = 3; // up-left
     if (dx > 0 && dy < 0) this.rotation = 1; // down-left
+    if (dx > 0 && dy == 0) this.rotation = 2; // left
+    if (dx > 0 && dy > 0) this.rotation = 3; // up-left
+    if (dx == 0 && dy > 0) this.rotation = 4; // up
     if (dx < 0 && dy > 0) this.rotation = 5; // up-right
+    if (dx < 0 && dy == 0) this.rotation = 6; // right
     if (dx < 0 && dy < 0) this.rotation = 7; // down-right
   }
 
