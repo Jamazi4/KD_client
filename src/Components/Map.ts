@@ -19,6 +19,7 @@ export class Map {
 
   // input handling
   private mouseCoords: Point;
+  public selectedTile: Tile | undefined;
 
   constructor(mapDim: number, origin: Point) {
     this.origin = origin;
@@ -51,7 +52,7 @@ export class Map {
     this.tileGrid.init();
   }
 
-  // draw mapImage on canvas relative to origin
+  // draw mapImage on canvas relative to origin / return curtile if any selected
   render(ctx: CanvasRenderingContext2D) {
     // extract drawing data from grid where it's calculated
     const tiles = this.tileGrid.getTiles();
@@ -69,6 +70,7 @@ export class Map {
         64,
         64
       );
+
       // draw selection marker
       if (curTile.coords.equals(this.mouseCoords)) {
         ctx.drawImage(
@@ -82,8 +84,10 @@ export class Map {
           64,
           64
         );
-      }
 
+        // save selected tile
+        this.selectedTile = curTile;
+      }
       ctx.font = "12px arial";
     }
     // Debuggin coords
