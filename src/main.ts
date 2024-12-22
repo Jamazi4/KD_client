@@ -1,6 +1,7 @@
 import { Map } from "./Components/Map";
 import { Point } from "./utils/Point";
 import { ConnectionManager } from "./Components/ConnectionManager";
+import { Player } from "./Components/Player";
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
@@ -11,6 +12,7 @@ connectionManager.listen();
 connectionManager.updateServer();
 const client_players = connectionManager.client_players;
 let this_client_id = "";
+let currentPlayer: Player;
 
 // --------------------------------- JOIN/API ----------------------------------
 // consider to handle that also on ws only instead through API
@@ -21,6 +23,7 @@ joinBtn?.addEventListener("click", async (event) => {
   event.stopPropagation();
   await connectionManager.joinGame();
   this_client_id = connectionManager.this_client_id;
+  currentPlayer = client_players[this_client_id];
   joinBtn.classList.toggle("hidden");
 });
 
@@ -84,15 +87,18 @@ function mainLoop() {
   // Render map
   map.render(ctx);
   const selectedTile = map.selectedTile;
+  if (currentPlayer) {
+    map.markTiles(currentPlayer, ctx);
+  }
 
   // Render client_players
   for (let player_client_id in client_players) {
     client_players[player_client_id].render(ctx, map.tileGrid, dt);
+  }
 
-    // control current player
-    if (player_client_id === this_client_id) {
-      client_players[player_client_id].control(selectedTile);
-    }
+  // Control current player
+  if (currentPlayer) {
+    currentPlayer.control(selectedTile);
   }
 }
 

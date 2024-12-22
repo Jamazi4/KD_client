@@ -4,6 +4,7 @@ import { Grid, Tile } from "./Grid";
 interface PlayerData {
   clientId: string;
   rotation: number;
+  position: Point;
 }
 
 export class Player {
@@ -75,6 +76,7 @@ export class Player {
     return {
       clientId: this.clientId,
       rotation: this.rotation,
+      position: this.position,
     };
   }
 

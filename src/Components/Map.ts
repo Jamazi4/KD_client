@@ -1,5 +1,6 @@
 import { Point } from "../utils/Point";
 import { Grid, Tile } from "./Grid";
+import { Player } from "./Player";
 
 export interface MapData {
   tiles: Point[][];
@@ -47,7 +48,7 @@ export class Map {
   }
 
   // New grid with
-  createGrid() {
+  private createGrid() {
     this.tileGrid = new Grid(this.mapDim, this.origin, this.mapData);
     this.tileGrid.init();
   }
@@ -124,5 +125,52 @@ export class Map {
     return this.mouseCoords;
   }
 
-  markTiles() {}
+  markTiles(player: Player, ctx: CanvasRenderingContext2D) {
+    const { position, rotation } = player.getPlayerData();
+    const playerTile = this.tileGrid.getTile(position);
+    let markPos;
+
+    switch (rotation) {
+      case 0: // down
+        markPos = new Point(playerTile.coords.x, playerTile.coords.y - 1);
+        break;
+      case 1: // down-left
+        markPos = new Point(playerTile.coords.x + 1, playerTile.coords.y - 1);
+        break;
+      case 2: // left
+        markPos = new Point(playerTile.coords.x + 1, playerTile.coords.y);
+        break;
+      case 3: // up-left
+        markPos = new Point(playerTile.coords.x + 1, playerTile.coords.y + 1);
+        break;
+      case 4: // up
+        markPos = new Point(playerTile.coords.x, playerTile.coords.y + 1);
+        break;
+      case 5: // up-right
+        markPos = new Point(playerTile.coords.x - 1, playerTile.coords.y + 1);
+        break;
+      case 6:
+        markPos = new Point(playerTile.coords.x - 1, playerTile.coords.y);
+        break;
+      case 7:
+        markPos = new Point(playerTile.coords.x - 1, playerTile.coords.y - 1);
+        break;
+    }
+
+    if (markPos) {
+      const tileToMark = this.tileGrid.getTile(markPos);
+
+      ctx.drawImage(
+        this.markerImage,
+        0,
+        64, // sprite coordinates for highlight marker
+        16,
+        16,
+        tileToMark.destPos.x,
+        tileToMark.destPos.y,
+        64,
+        64
+      );
+    }
+  }
 }
