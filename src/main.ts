@@ -60,7 +60,7 @@ addEventListener("mousemove", (event: MouseEvent) => {
 });
 
 addEventListener("click", (event: MouseEvent) => {
-  if (mouseCoords.x !== -1) {
+  if (mouseCoords.x !== -1 && mouseCoords.y !== -1) {
     currentPlayer.move(mouseCoords);
     console.log(mouseCoords);
   }

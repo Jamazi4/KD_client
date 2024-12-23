@@ -157,7 +157,16 @@ export class Map {
         break;
     }
 
-    if (markPos) {
+    // Check if markPos is not out of map bounds i.e.
+    // player at bottom tile looking down
+    const validMarkPos =
+      markPos &&
+      markPos.x > 0 &&
+      markPos.y > 0 &&
+      markPos.x < this.mapDim &&
+      markPos.y < this.mapDim;
+
+    if (markPos && validMarkPos) {
       const tileToMark = this.tileGrid.getTile(markPos);
 
       ctx.drawImage(
