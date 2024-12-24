@@ -81,12 +81,79 @@ export class Player {
     return rotation;
   }
 
+  calculateAttackCoords(): Point {
+    let attackCoords;
+    switch (this.rotation) {
+      case 0: // down
+        attackCoords = new Point(
+          this.renderTile.coords.x,
+          this.renderTile.coords.y - 1
+        );
+        break;
+      case 1: // down-left
+        attackCoords = new Point(
+          this.renderTile.coords.x + 1,
+          this.renderTile.coords.y - 1
+        );
+        break;
+      case 2: // left
+        attackCoords = new Point(
+          this.renderTile.coords.x + 1,
+          this.renderTile.coords.y
+        );
+        break;
+      case 3: // up-left
+        attackCoords = new Point(
+          this.renderTile.coords.x + 1,
+          this.renderTile.coords.y + 1
+        );
+        break;
+      case 4: // up
+        attackCoords = new Point(
+          this.renderTile.coords.x,
+          this.renderTile.coords.y + 1
+        );
+        break;
+      case 5: // up-right
+        attackCoords = new Point(
+          this.renderTile.coords.x - 1,
+          this.renderTile.coords.y + 1
+        );
+        break;
+      case 6:
+        attackCoords = new Point(
+          this.renderTile.coords.x - 1,
+          this.renderTile.coords.y
+        );
+        break;
+      case 7:
+        attackCoords = new Point(
+          this.renderTile.coords.x - 1,
+          this.renderTile.coords.y - 1
+        );
+        break;
+    }
+    if (attackCoords) return attackCoords;
+    return new Point(-1, -1);
+  }
+
+  calculateLegalCoords(): Point[] {
+    let legalCoords: Point[] = [];
+    for (let i = 0; i < 5; i++) {
+      for (let j = 0; j < 5; j++) {
+        legalCoords.push(
+          new Point(this.position.x + 2 - i, this.position.y + 2 - j)
+        );
+      }
+    }
+    return legalCoords;
+  }
+
   getPlayerData(): PlayerData {
     return {
-      clientId: this.clientId,
-      rotation: this.rotation,
-      position: this.position,
-      distance: this.distance,
+      clientId: this.clientId ?? "",
+      rotation: this.rotation ?? -1,
+      position: this.position ?? new Point(-1, -1),
     };
   }
 

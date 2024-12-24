@@ -85,6 +85,6 @@ export class Grid {
         }
       }
     }
-    throw new Error("Tile not found");
+    return new Tile();
   }
 }

@@ -125,40 +125,7 @@ export class Map {
     return this.mouseCoords;
   }
 
-  private markAttackTile(player: Player, ctx: CanvasRenderingContext2D) {
-    const { position, rotation } = player.getPlayerData();
-
-    if (!position) return;
-    const playerTile = this.tileGrid.getTile(position);
-    let markPos;
-
-    switch (rotation) {
-      case 0: // down
-        markPos = new Point(playerTile.coords.x, playerTile.coords.y - 1);
-        break;
-      case 1: // down-left
-        markPos = new Point(playerTile.coords.x + 1, playerTile.coords.y - 1);
-        break;
-      case 2: // left
-        markPos = new Point(playerTile.coords.x + 1, playerTile.coords.y);
-        break;
-      case 3: // up-left
-        markPos = new Point(playerTile.coords.x + 1, playerTile.coords.y + 1);
-        break;
-      case 4: // up
-        markPos = new Point(playerTile.coords.x, playerTile.coords.y + 1);
-        break;
-      case 5: // up-right
-        markPos = new Point(playerTile.coords.x - 1, playerTile.coords.y + 1);
-        break;
-      case 6:
-        markPos = new Point(playerTile.coords.x - 1, playerTile.coords.y);
-        break;
-      case 7:
-        markPos = new Point(playerTile.coords.x - 1, playerTile.coords.y - 1);
-        break;
-    }
-
+  private markAttackTile(markPos: Point, ctx: CanvasRenderingContext2D) {
     // Check if markPos is not out of map bounds i.e.
     // player at bottom tile looking down
     const validMarkPos =
@@ -185,9 +152,27 @@ export class Map {
     }
   }
 
-  private markLegalTiles(player: Player, ctx: CanvasRenderingContext2D) {}
+  private markLegalTiles(legalCoords: Point[], ctx: CanvasRenderingContext2D) {
+    for (let coord of legalCoords.flat()) {
+      const tileToMark = this.tileGrid.getTile(coord);
+      if (tileToMark.coords.x !== -1) {
+        ctx.drawImage(
+          this.markerImage,
+          0,
+          16, // sprite coordinates for highlight marker
+          16,
+          16,
+          tileToMark.destPos.x,
+          tileToMark.destPos.y,
+          64,
+          64
+        );
+      }
+    }
+  }
 
   markTiles(player: Player, ctx: CanvasRenderingContext2D) {
-    this.markAttackTile(player, ctx);
+    this.markLegalTiles(player.calculateLegalCoords(), ctx);
+    this.markAttackTile(player.calculateAttackCoords(), ctx);
   }
 }
