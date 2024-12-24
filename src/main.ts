@@ -2,16 +2,17 @@ import { Map } from "./Components/Map";
 import { Point } from "./utils/Point";
 import { ConnectionManager } from "./Components/ConnectionManager";
 import { Player } from "./Components/Player";
+import { Tile } from "./Components/Grid";
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d")!;
-// ----------------------------- Websockets-----------------------------------
 
+// ----------------------------- Websockets-----------------------------------
 const connectionManager = new ConnectionManager();
 connectionManager.listen();
 connectionManager.updateServer();
-const client_players = connectionManager.client_players;
-let this_client_id = "";
+const client_players = connectionManager.client_players; // shady
+let this_client_id = ""; // shady
 let currentPlayer: Player;
 
 // --------------------------------- JOIN/API ----------------------------------
@@ -22,8 +23,8 @@ const joinBtn = document.getElementById("join-button");
 joinBtn?.addEventListener("click", async (event) => {
   event.stopPropagation();
   await connectionManager.joinGame();
-  this_client_id = connectionManager.this_client_id;
-  currentPlayer = client_players[this_client_id];
+  this_client_id = connectionManager.this_client_id; // shady
+  currentPlayer = client_players[this_client_id]; // shady?
   joinBtn.classList.toggle("hidden");
 });
 
@@ -60,7 +61,17 @@ addEventListener("mousemove", (event: MouseEvent) => {
 });
 
 addEventListener("click", (event: MouseEvent) => {
-  if (mouseCoords.x !== -1 && mouseCoords.y !== -1) {
+  // if move is inside a map and there's a player to control
+  if (mouseCoords.x !== -1 && mouseCoords.y !== -1 && currentPlayer) {
+    // push this to inputs
+    connectionManager.inputs.push({
+      timestamp: performance.now(),
+      clientId: this_client_id,
+      action: "move",
+      coords: mouseCoords,
+    });
+
+    // immedietally apply to player (prediction)
     currentPlayer.move(mouseCoords);
     console.log(mouseCoords);
   }
@@ -73,6 +84,9 @@ await map.init();
 
 // calculate delta time
 let lastFrame = performance.now();
+
+// save last selected tile to see if action is needed to add to input list
+let lastSelectedTile: Tile | undefined = new Tile();
 
 //update
 function mainLoop() {
@@ -99,9 +113,20 @@ function mainLoop() {
     client_players[player_client_id].render(ctx, map.tileGrid, dt);
   }
 
-  // Control current player
-  if (currentPlayer) {
-    currentPlayer.control(selectedTile);
+  // rotate current player if it exists and the selected tile changes
+  if (currentPlayer && selectedTile && selectedTile !== lastSelectedTile) {
+    const curRotation = currentPlayer.calculateRotation(selectedTile);
+
+    connectionManager.inputs.push({
+      timestamp: performance.now(),
+      clientId: this_client_id,
+      action: "rotate",
+      rotation: curRotation,
+    });
+
+    currentPlayer.rotate(curRotation);
+
+    lastSelectedTile = selectedTile;
   }
 }
 

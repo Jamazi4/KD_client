@@ -9,7 +9,7 @@ export class Tile {
   constructor() {
     this.sourcePos = new Point(0, 0);
     this.destPos = new Point(0, 0);
-    this.coords = new Point(0, 0);
+    this.coords = new Point(-1, -1);
   }
 }
 

@@ -127,6 +127,8 @@ export class Map {
 
   private markAttackTile(player: Player, ctx: CanvasRenderingContext2D) {
     const { position, rotation } = player.getPlayerData();
+
+    if (!position) return;
     const playerTile = this.tileGrid.getTile(position);
     let markPos;
 
@@ -161,8 +163,8 @@ export class Map {
     // player at bottom tile looking down
     const validMarkPos =
       markPos &&
-      markPos.x > 0 &&
-      markPos.y > 0 &&
+      markPos.x >= 0 &&
+      markPos.y >= 0 &&
       markPos.x < this.mapDim &&
       markPos.y < this.mapDim;
 
