@@ -92,9 +92,10 @@ export class ConnectionManager {
 
   async joinGame() {
     try {
+      const timestamp = performance.now();
       // recieve generated player position
       const response = await fetch(
-        `${this.api_url}/create_player/${this.playerName}?client_id=${this.this_client_id}`
+        `${this.api_url}/create_player/${this.playerName}?client_id=${this.this_client_id}&timestamp=${timestamp}`
       );
       const data = await response.json();
 
@@ -153,7 +154,6 @@ export class ConnectionManager {
   // ----------------------------Send/recieve-----------------------------------
 
   private updateClientPlayers(server_players: ServerPlayers) {
-    // console.log("EACH PLAYER");
     for (let client_id in this.client_players) {
       // omit current player from loop
       if (client_id === this.this_client_id) continue;
