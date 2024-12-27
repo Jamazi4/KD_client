@@ -81,7 +81,8 @@ export class Grid {
     for (let row of this.tiles) {
       for (let curTile of row) {
         if (curTile.coords.equals(coords)) {
-          return curTile;
+          const returnTile = structuredClone(curTile);
+          return returnTile;
         }
       }
     }

@@ -1,6 +1,5 @@
 import { Point } from "../utils/Point";
 import { Grid, Tile } from "./Grid";
-import { Input } from "./ConnectionManager";
 
 interface PlayerData {
   clientId?: string;
@@ -11,20 +10,24 @@ interface PlayerData {
 
 export class Player {
   // player data
-  private clientId: string;
-  private name: string;
+  private readonly clientId: string;
+  private readonly name: string;
+  private readonly distance: number = 2; // only for legal tiles dev
   private level = 0;
   private position: Point;
-  private distance: number = 2; // only for legal tiles dev
 
   // rendering / animation
-  private image = new Image();
+  private readonly image = new Image();
   public rotation: number = 0;
-  private timer: number = 0;
-  private animFrames = [0, 16];
+  private animTimer: number = 0;
+  private readonly animFrames = [0, 16, 32, 48];
   private curFrame = 0;
   private renderTile: Tile = new Tile();
-  private animSpeed = 500;
+  private destinationCoords: Point = new Point(-1, -1);
+  private readonly animSpeed = 500;
+  private movingTimer = 5000;
+  public moving = false;
+  private readonly movingTime = 300;
 
   constructor(clientId: string, name: string, position: Point, color: number) {
     this.clientId = clientId;
@@ -34,21 +37,40 @@ export class Player {
   }
 
   render(ctx: CanvasRenderingContext2D, grid: Grid, dt: number) {
-    // Get position data from grid
-    this.renderTile = grid.getTile(this.position);
+    // set animTimer to perform animation
+    this.animTimer += dt;
 
-    // set timer to perform animation
-    this.timer += dt;
-
-    if (this.timer >= this.animSpeed) {
-      this.timer = 0;
+    if (this.animTimer >= this.animSpeed) {
+      this.animTimer = 0;
       this.curFrame = this.curFrame >= 1 ? 0 : this.curFrame + 1;
     }
+
+    // moving mechanism with animation
+    if (this.moving) {
+      if (this.movingTimer >= this.movingTime) {
+        // moving finished
+        this.moving = false;
+        this.position = this.destinationCoords;
+      } else {
+        // currently moving
+        this.curFrame = 3;
+        const destinationTile = grid.getTile(this.destinationCoords);
+        const dx = destinationTile.destPos.x - this.renderTile.destPos.x;
+        const dy = destinationTile.destPos.y - this.renderTile.destPos.y;
+        this.renderTile.destPos.x += dx / dt;
+        this.renderTile.destPos.y += dy / dt;
+        this.movingTimer += dt;
+      }
+    } else {
+      // Get position data from grid
+      this.renderTile = grid.getTile(this.position);
+    }
+
     // draw sprite
     ctx.drawImage(
       this.image,
       this.animFrames[this.curFrame], //idle frames (columns)
-      this.rotation * 16, // rotate
+      this.rotation * 16, // rotate (rows)
       16,
       16,
       this.renderTile.destPos.x,
@@ -158,7 +180,12 @@ export class Player {
   }
 
   move(position: Point) {
-    this.position = position;
+    this.movingTimer = 0;
+    this.moving = true;
+    this.destinationCoords = position;
+    setTimeout(() => {
+      this.position = position;
+    }, 300);
   }
 
   reapplyAction(data: PlayerData) {

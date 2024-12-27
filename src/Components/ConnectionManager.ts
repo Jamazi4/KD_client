@@ -190,8 +190,9 @@ export class ConnectionManager {
 
     // depending on last input action, check regarded parameters
     if (curInput[0].action === "move") {
-      valid = curInput[0].coords.x === curServerPlayer.position.x;
-      valid = curInput[0].coords.y === curServerPlayer.position.y;
+      valid =
+        curInput[0].coords.x === curServerPlayer.position.x &&
+        curInput[0].coords.y === curServerPlayer.position.y;
     } else if (curInput[0].action === "rotate") {
       valid = curInput[0].rotation === curServerPlayer.rotation;
     }

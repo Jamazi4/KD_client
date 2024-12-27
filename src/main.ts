@@ -62,7 +62,12 @@ addEventListener("mousemove", (event: MouseEvent) => {
 
 addEventListener("click", (event: MouseEvent) => {
   // if move is inside a map and there's a player to control
-  if (mouseCoords.x !== -1 && mouseCoords.y !== -1 && currentPlayer) {
+  if (
+    mouseCoords.x !== -1 &&
+    mouseCoords.y !== -1 &&
+    currentPlayer &&
+    !currentPlayer.moving
+  ) {
     // push this to inputs
     connectionManager.inputs.push({
       timestamp: performance.now(),
@@ -101,10 +106,10 @@ function mainLoop() {
   // Pixelate everything
   ctx.imageSmoothingEnabled = false;
 
-  // Render map
+  // Render map and mark the tiles
   map.render(ctx);
   const selectedTile = map.selectedTile;
-  if (currentPlayer) {
+  if (currentPlayer && !currentPlayer.moving) {
     map.markTiles(currentPlayer, ctx);
   }
 
@@ -113,10 +118,11 @@ function mainLoop() {
     client_players[player_client_id].render(ctx, map.tileGrid, dt);
   }
 
-  // rotate current player if it exists and the selected tile changes
+  // rotate current player if it exists and then selected tile changes
   if (currentPlayer && selectedTile && selectedTile !== lastSelectedTile) {
     const curRotation = currentPlayer.calculateRotation(selectedTile);
 
+    // Add input to input queue
     connectionManager.inputs.push({
       timestamp: performance.now(),
       clientId: this_client_id,
